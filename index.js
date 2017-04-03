@@ -38,17 +38,18 @@ socket.on('device-record', ([interval, iteration, hash]) => {
   let tick = 0;
 
   let period = setInterval(() => {
-    if (tick >= iteration) {
+    const num = tick
+    if (num >= iteration) {
       socket.emit('device-upload-complete', [socket.id, hash])
       return clearInterval(period)
     }
     
-    img(hash, tick).on('close', code => {
-      fs.readFile(filepath(hash, tick),'base64', (err, data) => {
-        console.log(tick)
+    img(hash, num).on('close', code => {
+      fs.readFile(filepath(hash, num),'base64', (err, data) => {
+        console.log(num, tick)
         console.log(data.length)
         request({
-          url: `http://192.168.0.100:3000/device-api/post-image/${hash}/${tick}`,
+          url: `http://192.168.0.100:3000/device-api/post-image/${hash}/${num}`,
           method: 'POST',
           data,
           header: {
