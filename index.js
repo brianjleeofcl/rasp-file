@@ -13,7 +13,7 @@ const serial = function() {
   return serial[1].slice(1)
 }
 
-const socket = io.connect('http://192.168.0.100:3000')
+const socket = io.connect('http://brianjleeofcl-capstone.herokuapp.com')
 
 socket.on('connect', () => {
   const id = serial()
@@ -49,7 +49,7 @@ socket.on('device-record', ([interval, iteration, hash]) => {
         console.log(num)
         console.log(data.length)
         request({
-          url: `http://192.168.0.100:3000/device-api/post-image/${hash}/${num}`,
+          url: `http://brianjleeofcl-capstone.herokuapp.com/device-api/post-image/${hash}/${num}`,
           method: 'POST',
           data,
           header: {
