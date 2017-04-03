@@ -45,7 +45,7 @@ socket.on('device-record', ([interval, iteration, hash]) => {
     }
     
     img(hash, num).on('close', code => {
-      fs.readFile(filepath(hash, num),'base64', (err, data) => {
+      fs.readFile(filepath(hash, num), (err, data) => {
         console.log(num, tick)
         console.log(data.length)
         request({
