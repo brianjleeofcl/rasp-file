@@ -6,12 +6,11 @@ const io = require('socket.io-client');
 const request = require('axios')
 
 const serial = function() {
-  fs.readFile('/proc/cpuinfo', 'utf8', (err, data) => {
-    const arr = data.split('\n')
-    const serialLine = arr[arr.length - 2]
-    const serial = serialLine.split(':')
-    return serial[1].slice(1)
-  });
+  const data = fs.readFileSync('/proc/cpuinfo', 'utf8')
+  const arr = data.split('\n')
+  const serialLine = arr[arr.length - 2]
+  const serial = serialLine.split(':')
+  return serial[1].slice(1)
 }
 
 const socket = io.connect('http://192.168.0.100:3000')
