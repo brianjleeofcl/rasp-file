@@ -1,11 +1,64 @@
 const fs = require('fs');
 const path = require('path');
-
 const { spawn } = require('child_process');
 
-const frame = spawn('fswebcam', ['-r', '1280x720', '--no-banner', path.join('/media', 'pi', '42B4-3100', 'img-test.jpg')])
+const io = require('socket.io-client');
+const request = require('axios')
 
-frame.on('close', code => {
-  if (code) console.error(`Exit with error code ${code}`)
-  process.exit(code)
+const serial = function() {
+  fs.readFile('/proc/cpuinfo', 'utf8', (err, data) => {
+    const arr = data.split('\n')
+    const serialLine = arr[arr.length - 2]
+    const serial = serialLine.split(':')
+    return serial[1].slice(1)
+  });
+}
+
+const socket = io.connect('http://192.168.0.100:3000')
+
+socket.on('connect', () => {
+  const id = serial()
+  socket.emit('initialize-device-user', ['pi', id, null])
+})
+
+const filename = function(hash, num) {
+  const index = `000${num}`.slice(-3)
+  return `${hash}-${index}.jpg`
+}
+
+const filepath = function(hash, num) {
+  return path.join('/media', 'pi', '42B4-3100', filename(hash, num))
+}
+
+const img = function(hash, num) {
+  return spawn('fswebcam', ['-r', '1280x720', '--no-banner', filepath(hash, num)])
+}
+
+socket.on('device-record', ([interval, iteration, hash]) => {
+  let tick = 0;
+
+  let period = setInterval(() => {
+    if (tick >= iteration) {
+      socket.emit('device-upload-complete', [socket.id, hash])
+      return clearInterval(period)
+    }
+    
+    img(hash, tick).on('close', code => {
+      fs.readFile(filepath(hash, tick), (err, data) => {
+        request({
+          url: `http://192.168.0.100:3000/device-api/post-image/${hash}/${tick}`,
+          method: 'POST',
+          data,
+          header: {
+            'Content-Type': 'image/jpeg',
+            'Content-Encoding': 'base64',
+            'Connection': 'Keep-Alive'
+          }
+        })
+      })
+    })
+
+    tick++
+
+  }, interval)
 })

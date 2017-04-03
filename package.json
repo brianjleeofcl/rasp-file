@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/brianjleeofcl/rasp-file#readme",
   "dependencies": {
+    "axios": "^0.16.0",
     "socket.io-client": "^1.7.3"
   }
 }
