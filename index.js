@@ -31,7 +31,7 @@ const filepath = function(hash, num) {
 }
 
 const img = function(hash, num) {
-  return spawn('fswebcam', ['-r', '1280x720', '--no-banner', filepath(hash, num)])
+  return spawn('fswebcam', ['-r', '960x540', '--no-banner', filepath(hash, num)])
 }
 
 socket.on('device-record', ([interval, iteration, hash]) => {
@@ -39,14 +39,14 @@ socket.on('device-record', ([interval, iteration, hash]) => {
 
   let period = setInterval(() => {
     const num = tick
-    if (num >= iteration) {
+    if (num > iteration) {
       socket.emit('device-upload-complete', [socket.id, hash])
       return clearInterval(period)
     }
     
     img(hash, num).on('close', code => {
       fs.readFile(filepath(hash, num), (err, data) => {
-        console.log(num, tick)
+        console.log(num)
         console.log(data.length)
         request({
           url: `http://192.168.0.100:3000/device-api/post-image/${hash}/${num}`,
