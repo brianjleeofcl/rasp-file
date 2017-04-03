@@ -18,6 +18,7 @@ const socket = io.connect('http://192.168.0.100:3000')
 
 socket.on('connect', () => {
   const id = serial()
+  console.log(id)
   socket.emit('initialize-device-user', ['pi', id, null])
 })
 
