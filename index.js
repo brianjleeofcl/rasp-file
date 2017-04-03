@@ -44,7 +44,7 @@ socket.on('device-record', ([interval, iteration, hash]) => {
     }
     
     img(hash, tick).on('close', code => {
-      fs.readFile(filepath(hash, tick), (err, data) => {
+      fs.readFile(filepath(hash, tick),'base64', (err, data) => {
         request({
           url: `http://192.168.0.100:3000/device-api/post-image/${hash}/${tick}`,
           method: 'POST',
