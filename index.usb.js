@@ -5,30 +5,20 @@ const { spawn } = require('child_process');
 const io = require('socket.io-client');
 const request = require('axios')
 
-const getSerial = function() {
+const serial = function() {
   const data = fs.readFileSync('/proc/cpuinfo', 'utf8')
   const arr = data.split('\n')
   const serialLine = arr[arr.length - 2]
   const serial = serialLine.split(':')
   return serial[1].slice(1)
 }
-const serial = getSerial()
-console.log(`ezfwd-pi| serial: ${serial}`)
-
-const getIp = function() {
-  let ip;
-  spawn('hostname', ['-I']).stdout.on('data', data => {
-    ip = data;
-  })
-  return ip;
-}
-const ip = getIp()
-console.log(`ezfwd-pi| ip: ${ip}`)
 
 const socket = io.connect('http://brianjleeofcl-capstone.herokuapp.com')
+
 socket.on('connect', () => {
-  console.log(`connected to socket ${socket.id}`)
-  socket.emit('initialize-device-user', ['pi', serial, null])
+  const id = serial()
+  console.log(id)
+  socket.emit('initialize-device-user', ['pi', id, null])
 })
 
 const filename = function(hash, num) {
@@ -41,7 +31,7 @@ const filepath = function(hash, num) {
 }
 
 const img = function(hash, num) {
-  return spawn('raspistill', ['-w', '960', '-h', '540', '-o', filepath(hash, num)])
+  return spawn('fswebcam', ['-r', '960x540', '--no-banner', filepath(hash, num)])
 }
 
 socket.on('device-record', ([interval, iteration, hash]) => {
