@@ -1,24 +1,44 @@
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 
 const io = require('socket.io-client');
 const request = require('axios')
 
-const serial = function() {
+const getSerial = function() {
   const data = fs.readFileSync('/proc/cpuinfo', 'utf8')
   const arr = data.split('\n')
   const serialLine = arr[arr.length - 2]
   const serial = serialLine.split(':')
   return serial[1].slice(1)
 }
+const serial = getSerial()
+console.log(`ezfwd-pi| serial: ${serial}`)
 
-const socket = io.connect('http://192.168.0.101:3000')
+const getIp = function() {
+  return spawnSync('hostname', ['-I']).stdout
+}
+const ip = getIp()
+console.log(`ezfwd-pi| ip: ${ip}`)
 
+const preview = function() {
+  return spawn('raspistill', ['-w', '256', '-h', '144', '-vf', '-hf', '-o', filepath('preview', 0)])
+}
+
+let previewLoop
+
+const socket = io.connect('http://10.5.82.188:3000')
 socket.on('connect', () => {
-  const id = serial()
-  console.log(id)
-  socket.emit('initialize-device-user', ['pi', id, null])
+  console.log(`connected to socket ${socket.id}`)
+  socket.emit('initialize-device-user', ['pi', serial, null])
+
+  previewLoop = setInterval(() => {
+    preview().on('exit', () => {
+      fs.readFile(filepath('preview', 0), 'base64', (err, data) => {
+        socket.emit('preview-image', data)
+      })
+    })
+  }, 5000)
 })
 
 const filename = function(hash, num) {
@@ -31,10 +51,11 @@ const filepath = function(hash, num) {
 }
 
 const img = function(hash, num) {
-  return spawn('fswebcam', ['-r', '960x540', '--no-banner', filepath(hash, num)])
+  return spawn('raspistill', ['-w', '848', '-h', '480', '-vf', '-hf', '-o', filepath(hash, num)])
 }
 
 socket.on('device-record', ([interval, iteration, hash]) => {
+  clearInterval(previewLoop)
   let tick = 0;
 
   let period = setInterval(() => {
@@ -43,13 +64,12 @@ socket.on('device-record', ([interval, iteration, hash]) => {
       socket.emit('device-upload-complete', [socket.id, hash])
       return clearInterval(period)
     }
-    
-    img(hash, num).on('close', code => {
+    img(hash, num).on('exit', function (code) {
+      if (code) throw new Error(`ERR: exit with code ${code}`)
       fs.readFile(filepath(hash, num), (err, data) => {
-        console.log(num)
-        console.log(data.length)
+        if (err) console.error(err)
         request({
-          url: `http://192.168.0.101:3000/device-api/post-image/${hash}/${num}`,
+          url: `http://10.5.82.188:3000/device-api/post-image/${hash}/${num}`,
           method: 'POST',
           data,
           header: {

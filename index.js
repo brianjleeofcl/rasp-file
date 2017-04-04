@@ -21,10 +21,24 @@ const getIp = function() {
 const ip = getIp()
 console.log(`ezfwd-pi| ip: ${ip}`)
 
+const preview = function() {
+  return spawn('raspistill', ['-w', '256', '-h', '144', '-vf', '-hf', '-o', filepath('preview', 0)])
+}
+
+let previewLoop
+
 const socket = io.connect('http://brianjleeofcl-capstone.herokuapp.com')
 socket.on('connect', () => {
   console.log(`connected to socket ${socket.id}`)
   socket.emit('initialize-device-user', ['pi', serial, null])
+
+  previewLoop = setInterval(() => {
+    preview().on('exit', () => {
+      fs.readFile(filepath('preview', 0), 'base64', (err, data) => {
+        socket.emit('preview-image', data)
+      })
+    })
+  }, 5000)
 })
 
 const filename = function(hash, num) {
@@ -41,6 +55,7 @@ const img = function(hash, num) {
 }
 
 socket.on('device-record', ([interval, iteration, hash]) => {
+  clearInterval(previewLoop)
   let tick = 0;
 
   let period = setInterval(() => {
@@ -49,15 +64,10 @@ socket.on('device-record', ([interval, iteration, hash]) => {
       socket.emit('device-upload-complete', [socket.id, hash])
       return clearInterval(period)
     }
-    console.log('52'+num)
     img(hash, num).on('exit', function (code) {
-      console.log(`${num}: error code ${code}`)
-      console.log('55'+num)
+      if (code) throw new Error(`ERR: exit with code ${code}`)
       fs.readFile(filepath(hash, num), (err, data) => {
-        console.log('57'+num)
         if (err) console.error(err)
-        console.log('59'+num)
-        console.log(data.length)
         request({
           url: `http://brianjleeofcl-capstone.herokuapp.com/device-api/post-image/${hash}/${num}`,
           method: 'POST',
