@@ -49,14 +49,14 @@ socket.on('device-record', ([interval, iteration, hash]) => {
       socket.emit('device-upload-complete', [socket.id, hash])
       return clearInterval(period)
     }
-    console.log(num)
+    console.log('52'+num)
     img(hash, num).on('close', code => {
       if (code > 0) console.error(`error code ${code}`)
-      console.log(num)
+      console.log('55'+num)
       fs.readFile(filepath(hash, num), (err, data) => {
-        console.log(num)
+        console.log('57'+num)
         if (err) console.error(err)
-        console.log(num)
+        console.log('59'+num)
         console.log(data.length)
         request({
           url: `http://brianjleeofcl-capstone.herokuapp.com/device-api/post-image/${hash}/${num}`,
