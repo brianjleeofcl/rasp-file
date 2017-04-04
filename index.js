@@ -50,7 +50,7 @@ socket.on('device-record', ([interval, iteration, hash]) => {
       return clearInterval(period)
     }
     console.log('52'+num)
-    img(hash, num).on('exit', code => {
+    img(hash, num).on('exit', function (code) {
       console.log(`${num}: error code ${code}`)
       console.log('55'+num)
       fs.readFile(filepath(hash, num), (err, data) => {
