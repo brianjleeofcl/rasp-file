@@ -51,7 +51,7 @@ socket.on('device-record', ([interval, iteration, hash]) => {
     }
     console.log('52'+num)
     img(hash, num).on('close', code => {
-      // if (code > 0) console.error(`error code ${code}`)
+      console.log(`${num}: error code ${code}`)
       console.log('55'+num)
       fs.readFile(filepath(hash, num), (err, data) => {
         console.log('57'+num)
