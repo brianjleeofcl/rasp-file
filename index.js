@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 
 const io = require('socket.io-client');
 const request = require('axios')
@@ -16,11 +16,7 @@ const serial = getSerial()
 console.log(`ezfwd-pi| serial: ${serial}`)
 
 const getIp = function() {
-  let ip;
-  spawn('hostname', ['-I']).stdout.on('data', data => {
-    ip = data;
-  })
-  return ip;
+  return spawnSync('hostname', ['-I']).stdout
 }
 const ip = getIp()
 console.log(`ezfwd-pi| ip: ${ip}`)
