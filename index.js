@@ -37,7 +37,7 @@ const filepath = function(hash, num) {
 }
 
 const img = function(hash, num) {
-  return spawn('raspistill', ['-w', '960', '-h', '540', '-o', filepath(hash, num)])
+  return spawn('raspistill', ['-w', '848', '-h', '480', '-vf', '-hf', '-o', filepath(hash, num)])
 }
 
 socket.on('device-record', ([interval, iteration, hash]) => {
@@ -51,7 +51,9 @@ socket.on('device-record', ([interval, iteration, hash]) => {
     }
     
     img(hash, num).on('close', code => {
+      if (code > 0) console.error(`error code ${code}`)
       fs.readFile(filepath(hash, num), (err, data) => {
+        if (err) console.error(err)
         console.log(num)
         console.log(data.length)
         request({
