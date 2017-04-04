@@ -49,10 +49,12 @@ socket.on('device-record', ([interval, iteration, hash]) => {
       socket.emit('device-upload-complete', [socket.id, hash])
       return clearInterval(period)
     }
-    
+    console.log(num)
     img(hash, num).on('close', code => {
       if (code > 0) console.error(`error code ${code}`)
+      console.log(num)
       fs.readFile(filepath(hash, num), (err, data) => {
+        console.log(num)
         if (err) console.error(err)
         console.log(num)
         console.log(data.length)
