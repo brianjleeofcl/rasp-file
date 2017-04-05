@@ -35,7 +35,7 @@ socket.on('connect', () => {
   previewLoop = setInterval(() => {
     preview().on('exit', () => {
       fs.readFile(filepath('preview', 0), 'base64', (err, data) => {
-        socket.emit('preview-image', data)
+        socket.emit('device-preview-image', [socket.id, data])
       })
     })
   }, 5000)
