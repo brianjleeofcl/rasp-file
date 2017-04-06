@@ -3,14 +3,14 @@ const path = require('path');
 const { spawn, spawnSync } = require('child_process');
 
 const io = require('socket.io-client');
-const request = require('axios')
+const request = require('axios');
 
 const getSerial = function() {
-  const data = fs.readFileSync('/proc/cpuinfo', 'utf8')
-  const arr = data.split('\n')
-  const serialLine = arr[arr.length - 2]
-  const serial = serialLine.split(':')
-  return serial[1].slice(1)
+  const data = fs.readFileSync('/proc/cpuinfo', 'utf8');
+  const arr = data.split('\n');
+  const serialLine = arr[arr.length - 2];
+  const serial = serialLine.split(':');
+  return serial[1].slice(1);
 }
 const serial = getSerial()
 console.log(`ezfwd-pi| serial: ${serial}`)
